@@ -1,12 +1,18 @@
 import { useState } from "react";
+
 function App() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [userInfo, setUserInfo] = useState(null);
+
   const createUser = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/users", {
+      const response = await fetch("http://localhost:8000/users", {
         method: "POST",
 
         headers: {
@@ -20,17 +26,70 @@ function App() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Error creando usuario");
+        throw new Error(data.detail);
       }
 
-      alert("Usuario creado");
+      alert("Usuario creado correctamente");
 
       setName("");
       setUsername("");
       setPassword("");
     } catch (error) {
-      alert("Error al crear usuario");
+      alert(error.message);
+    }
+  };
+
+  const login = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append("username", loginUsername);
+      formData.append("password", loginPassword);
+
+      const response = await fetch("http://localhost:8000/login", {
+        method: "POST",
+
+        body: formData,
+
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail);
+      }
+
+      alert(`Usuario autenticado\n\nToken:\n${data.access_token}`);
+
+      setLoginUsername("");
+      setLoginPassword("");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  // Obtener información usuario
+  const getUserInfo = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/me", {
+        method: "GET",
+
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail);
+      }
+
+      setUserInfo(data);
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -87,16 +146,23 @@ function App() {
           <input
             type="text"
             placeholder="Nombre de usuario"
+            value={loginUsername}
+            onChange={(e) => setLoginUsername(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 outline-none focus:border-blue-400"
           />
 
           <input
             type="password"
             placeholder="Contraseña"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 outline-none focus:border-blue-400"
           />
 
-          <button className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium">
+          <button
+            onClick={login}
+            className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium"
+          >
             Entrar
           </button>
         </div>
@@ -109,12 +175,37 @@ function App() {
             Información del Usuario
           </h2>
 
-          <button className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium">
+          <button
+            onClick={getUserInfo}
+            className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium"
+          >
             Mostrar Información
           </button>
 
           <div className="bg-gray-100 border border-gray-200 rounded-xl p-4 flex flex-col gap-2 text-gray-700">
-            INFORMACIÓN DEL USUARIO
+            {userInfo ? (
+              <>
+                <p>
+                  <span className="font-semibold">ID:</span> {userInfo.id}
+                </p>
+
+                <p>
+                  <span className="font-semibold">Nombre:</span> {userInfo.name}
+                </p>
+
+                <p>
+                  <span className="font-semibold">Username:</span>{" "}
+                  {userInfo.username}
+                </p>
+
+                <p className="break-all">
+                  <span className="font-semibold">Hash:</span>{" "}
+                  {userInfo.hashed_password}
+                </p>
+              </>
+            ) : (
+              <p>No hay información del usuario</p>
+            )}
           </div>
         </div>
       </div>
