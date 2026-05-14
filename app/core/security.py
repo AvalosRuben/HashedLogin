@@ -51,7 +51,7 @@ def decode_access_token(token: str):
             algorithms=[ALGORITHM]
         )
     except InvalidTokenError:
-        raiseHTTPexception(
+        raise HTTPException(
             status_code= 401,
             detail="Token inválido"
         )
