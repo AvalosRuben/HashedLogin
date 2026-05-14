@@ -1,6 +1,9 @@
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
+from fastapi import HTTPException, Request
+from sqlmodel import Session, select
+from app.models.user_model import User
 
 from app.core.config import (
     SECRET_KEY,
@@ -47,3 +50,28 @@ def decode_access_token(token: str):
     )
 
     return payload
+
+def get_current_user(request: Request, session: Session):
+    token = request.cookies.get("access_token")
+
+    if not token:
+        auth = request.headers.get("Authorization")
+        if not auth or not auth.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="No autenticado")
+
+        token = auth.split(" ")[1]
+
+    payload = decode_access_token(token)
+    username = payload.get("sub")
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    user = session.exec(
+        select(User).where(User.username == username)
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+
+    return user

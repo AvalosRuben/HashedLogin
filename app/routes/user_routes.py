@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models.user_model import User
 from app.schemas.user_schema import UserCreate, UserResponse
 from app.core.security import hash_password, verify_password
+from app.core.security import get_current_user
 
 router = APIRouter()
 
@@ -39,3 +40,11 @@ def create_user(
     session.refresh(new_user)
 
     return new_user
+
+@router.get("/me")
+def read_me(
+    request: Request,
+    session: Session = Depends(get_session)
+):
+    user = get_current_user(request, session)
+    return user
