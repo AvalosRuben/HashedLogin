@@ -1,6 +1,7 @@
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
+from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException, Request
 from sqlmodel import Session, select
 from app.models.user_model import User
@@ -43,11 +44,17 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 def decode_access_token(token: str):
-    payload = jwt.decode(
-        token,
-        SECRET_KEY,
-        algorithms=[ALGORITHM]
-    )
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+    except InvalidTokenError:
+        raiseHTTPexception(
+            status_code= 401,
+            detail="Token inválido"
+        )
 
     return payload
 
