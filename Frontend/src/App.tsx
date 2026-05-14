@@ -1,4 +1,39 @@
+import { useState } from "react";
 function App() {
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const createUser = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/users", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          name,
+          username,
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error creando usuario");
+      }
+
+      alert("Usuario creado");
+
+      setName("");
+      setUsername("");
+      setPassword("");
+    } catch (error) {
+      alert("Error al crear usuario");
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-gray-200 flex justify-center items-center font-['Poppins']">
       {/* Card */}
@@ -12,22 +47,31 @@ function App() {
           <input
             type="text"
             placeholder="Nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 outline-none focus:border-blue-400"
           />
 
           <input
             type="text"
             placeholder="Nombre de usuario"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 outline-none focus:border-blue-400"
           />
 
           <input
             type="password"
             placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-xl py-2 px-3 outline-none focus:border-blue-400"
           />
 
-          <button className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium">
+          <button
+            onClick={createUser}
+            className="bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition font-medium"
+          >
             Crear Usuario
           </button>
         </div>
