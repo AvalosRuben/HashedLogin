@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.db import get_session
 from app.models.user_model import User
 from app.schemas.user_schema import UserCreate, UserResponse
+from app.core.security import hash_password, verify_password
 
 router = APIRouter()
 
@@ -30,9 +31,7 @@ def create_user(
     new_user = User(
         name=user_data.name,
         username=user_data.username,
-
-        #Cambiar cuando tengamos la contraseña hasheada
-        hashed_password=user_data.password
+        hashed_password= hash_password(user_data.password)
     )
 
     session.add(new_user)
